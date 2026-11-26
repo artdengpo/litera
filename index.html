@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171922">
+  <title>Литера — ваша мастерская книг</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Литера — главная">
+        <span class="brand-mark">Л</span>
+        <span class="brand-name">литера<span class="brand-period">.</span></span>
+      </a>
+      <div class="side-label">МАСТЕРСКАЯ</div>
+      <button class="nav-link active" id="nav-library" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4.75h12.5A1.5 1.5 0 0 1 19 6.25v13H6.5A1.5 1.5 0 0 1 5 17.75z"/><path d="M5 17.75a2 2 0 0 1 2-2h12M8.5 8h7M8.5 11h7"/></svg></span> Мои книги</button>
+      <button class="nav-link" id="nav-create" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14"/></svg></span> Новая книга</button>
+      <div class="sidebar-bottom">
+        <div class="api-indicator"><span class="status-dot" id="api-dot"></span><span id="api-status">Проверяем генератор…</span></div>
+        <p id="storage-status">Подключаем хранилище…</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>Мастерская</span><span class="crumb-separator">/</span><strong id="breadcrumb-current">Мои книги</strong></div>
+        <div class="topbar-actions"><button class="button button-secondary button-small" id="sign-out" type="button" hidden>Выйти</button><button class="button button-primary button-small" id="top-create" type="button"><span>＋</span> Создать книгу</button></div>
+      </header>
+
+      <section class="view" id="auth-view">
+        <div class="auth-card">
+          <p class="eyebrow">ВАША БИБЛИОТЕКА</p>
+          <h1>Войдите в <em>мастерскую.</em></h1>
+          <p class="auth-copy">Книги будут сохранены в вашей базе Supabase и доступны с любого устройства.</p>
+          <form id="auth-form">
+            <label class="field-label" for="auth-email">Электронная почта</label>
+            <input id="auth-email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label class="field-label" for="auth-password">Пароль</label>
+            <input id="auth-password" type="password" autocomplete="current-password" minlength="8" required placeholder="Не менее 8 символов">
+            <div class="auth-actions"><button class="button button-secondary" id="sign-up" type="button">Создать аккаунт</button><button class="button button-primary" type="submit">Войти</button></div>
+          </form>
+          <p class="auth-note" id="auth-note">Нужны URL и anon key проекта Supabase в настройках окружения сайта.</p>
+        </div>
+      </section>
+
+      <section class="view active" id="library-view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">ВАША БИБЛИОТЕКА</p>
+            <h1>Истории, которые <em>станут книгами.</em></h1>
+            <p class="heading-copy">Начните с идеи. Остальное соберём по главам.</p>
+          </div>
+          <div class="heading-ornament" aria-hidden="true">✳</div>
+        </div>
+        <div class="library-toolbar">
+          <div><h2>Мои проекты</h2><span class="project-count" id="project-count">0 книг</span></div>
+          <button class="button button-secondary" id="empty-create" type="button">＋ Новая книга</button>
+        </div>
+        <div class="book-grid" id="book-grid"></div>
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">✧</div>
+          <h3>Здесь пока тихо</h3>
+          <p>Создайте первую историю — план можно будет изменить в любой момент.</p>
+          <button class="button button-primary" id="empty-start" type="button">Начать книгу</button>
+        </div>
+      </section>
+
+      <section class="view" id="create-view">
+        <div class="wizard-heading">
+          <button class="back-link" id="back-library" type="button">← Мои книги</button>
+          <p class="eyebrow">НОВАЯ ИСТОРИЯ</p>
+          <h1>С чего начинается <em>ваша книга?</em></h1>
+          <div class="literary-divider" aria-hidden="true"><span></span><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14.2 9.8 20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.2L12 3.5Z"/></svg><span></span></div>
+          <p>Расскажите самое важное. Остальные детали можно оставить нам.</p>
+        </div>
+        <div class="creation-layout">
+          <aside class="creation-rail" aria-label="Этапы создания книги">
+            <p class="eyebrow">ПУТЬ РУКОПИСИ</p>
+            <div class="rail-bookmark" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none"><path d="M8 11.5c6.1-1.6 11.4-.7 16 2.4v24c-4.6-3.1-9.9-4-16-2.4zM40 11.5c-6.1-1.6-11.4-.7-16 2.4v24c4.6-3.1 9.9-4 16-2.4z"/><path d="M12.5 17c3.4-.5 6.1-.1 8.5 1.1M12.5 22c3.4-.5 6.1-.1 8.5 1.1M35.5 17c-3.4-.5-6.1-.1-8.5 1.1M35.5 22c-3.4-.5-6.1-.1-8.5 1.1"/></svg>
+            </div>
+            <ol class="creation-steps">
+              <li class="current"><span class="step-number">01</span><span><strong>Замысел</strong><small>Вы задаёте направление</small></span></li>
+              <li><span class="step-number">02</span><span><strong>План глав</strong><small>Вместе соберём сюжет</small></span></li>
+              <li><span class="step-number">03</span><span><strong>Рукопись</strong><small>Напишем историю по главам</small></span></li>
+            </ol>
+            <p class="rail-note">Не нужно знать всё заранее. Достаточно первой идеи.</p>
+          </aside>
+          <form class="brief-form" id="brief-form">
+          <label class="field-label" for="book-title">Название <span class="optional">(можно изменить позже)</span></label>
+          <input id="book-title" name="title" maxlength="100" placeholder="Например, «Пока город не уснул»">
+
+          <label class="field-label" for="book-author">Автор</label>
+          <input id="book-author" name="author" maxlength="120" placeholder="Ваше имя или псевдоним">
+
+          <label class="field-label" for="book-idea">Идея истории</label>
+          <textarea id="book-idea" name="idea" rows="5" required maxlength="5000" placeholder="Опишите, что хотите увидеть: герои, событие, настроение, чем всё должно закончиться…"></textarea>
+          <div class="field-hint">Не нужно писать идеально — это отправная точка.</div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label" for="book-genre">Жанр</label>
+              <select id="book-genre" name="genre">
+                <option>Романтика</option><option>Фэнтези</option><option>Мистика и хоррор</option>
+                <option>Детектив</option><option>Приключения</option><option>Драма</option><option>Другое</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="book-language">Язык</label>
+              <select id="book-language" name="language"><option value="ru">Русский</option><option value="en">English</option></select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label" for="book-chapters">Количество глав</label>
+              <select id="book-chapters" name="chapters"><option value="4">4 — короткая история</option><option value="6" selected>6 — повесть</option><option value="8">8 — длинная повесть</option><option value="10">10 — роман</option><option value="12">12 — большой роман</option><option value="16">16 — очень длинная история</option></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="book-words">Ориентир по объёму</label>
+              <select id="book-words" name="words"><option value="10000">Около 10 000 слов</option><option value="20000" selected>Около 20 000 слов</option><option value="30000">Около 30 000 слов</option><option value="50000">Около 50 000 слов</option></select>
+            </div>
+          </div>
+          <label class="field-label" for="book-details">Персонажи и важные детали <span class="optional">(необязательно)</span></label>
+          <textarea id="book-details" name="details" rows="3" maxlength="3000" placeholder="Имена, характеры, место действия, обязательные сцены или финал"></textarea>
+          <div class="form-actions">
+            <span class="privacy-note">✦ Черновик сохраняется в вашей библиотеке</span>
+            <button class="button button-primary" type="submit">Составить план <span>→</span></button>
+          </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="view" id="book-view">
+        <div class="book-header">
+          <button class="back-link" id="book-back" type="button">← Мои книги</button>
+          <div class="book-title-row"><div><p class="eyebrow" id="book-meta">ЧЕРНОВИК</p><h1 id="book-heading"></h1></div><button class="button button-secondary" id="delete-book" type="button">Удалить книгу</button></div>
+          <p class="book-idea" id="book-idea-preview"></p>
+          <div class="book-progress"><span id="book-progress-label">0 глав готовы</span><div class="progress-track"><span id="book-progress-bar"></span></div><span id="book-word-count">0 слов</span></div>
+        </div>
+        <div class="book-actions">
+          <button class="button button-primary" id="download-book" type="button">Скачать PDF</button>
+          <button class="button button-secondary" id="generate-all" type="button">Написать все главы</button>
+          <button class="button button-secondary" id="edit-plan" type="button">Изменить план</button>
+          <button class="button button-secondary" id="export-text" type="button">Скачать текст</button>
+        </div>
+        <div class="generation-status book-generation-status" id="book-generation-status" role="status" aria-live="polite" hidden>
+          <span class="generation-spinner" aria-hidden="true"></span>
+          <span id="book-generation-status-text"></span>
+        </div>
+        <div class="chapter-list" id="chapter-list"></div>
+      </section>
+
+      <section class="view" id="plan-view">
+        <div class="wizard-heading compact">
+          <button class="back-link" id="plan-back" type="button">← К книге</button>
+          <p class="eyebrow">ПЛАН ИСТОРИИ</p>
+          <h1>Сначала — <em>каркас сюжета.</em></h1>
+          <p>Отредактируйте главы, затем утвердите план. Каждый пункт можно поменять.</p>
+        </div>
+        <div class="plan-controls"><button class="button button-secondary" id="regenerate-plan" type="button">↻ Предложить новый план</button><span id="plan-source">План-схема — можно написать его с помощью ИИ</span></div>
+        <div class="plan-list" id="plan-list"></div>
+        <div class="form-actions plan-actions"><button class="button button-secondary" id="cancel-plan" type="button">Назад</button><button class="button button-primary" id="approve-plan" type="button">Утвердить план <span>→</span></button></div>
+      </section>
+
+      <section class="view" id="editor-view">
+        <div class="editor-heading">
+          <button class="back-link" id="editor-back" type="button">← К книге</button>
+          <p class="eyebrow" id="editor-chapter-label">ГЛАВА</p>
+          <input class="editor-title-input" id="editor-title" aria-label="Название главы">
+          <div class="editor-tools"><span id="editor-word-count">0 слов</span><button class="button button-secondary button-small" id="regenerate-chapter" type="button">↻ Перегенерировать</button></div>
+          <div class="generation-status" id="generation-status" role="status" aria-live="polite" hidden>
+            <span class="generation-spinner" aria-hidden="true"></span>
+            <span id="generation-status-text">ИИ пишет главу…</span>
+          </div>
+        </div>
+        <div class="editor-layout">
+          <div class="editor-panel">
+            <textarea class="chapter-editor" id="chapter-text" aria-label="Текст главы" placeholder="Текст главы появится здесь — его можно сразу редактировать."></textarea>
+            <div class="editor-footer"><span id="save-status">Изменения сохраняются автоматически</span><button class="button button-primary" id="save-chapter" type="button">Сохранить главу</button></div>
+          </div>
+          <aside class="chapter-brief"><p class="eyebrow">ЗАДАЧА ГЛАВЫ</p><p id="editor-summary"></p><div class="brief-divider"></div><p class="eyebrow">ЗАМЕТКА</p><textarea id="chapter-note" rows="4" placeholder="Что важно помнить в этой главе?"></textarea></aside>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="confirm-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+      <h2 id="modal-heading">Удалить книгу?</h2><p>Это действие нельзя отменить. Текст и план будут удалены из этого браузера.</p>
+      <div class="modal-actions"><button class="button button-secondary" id="cancel-delete" type="button">Отмена</button><button class="button button-danger" id="confirm-delete" type="button">Удалить</button></div>
+    </div>
+  </div>
+</body>
+</html>

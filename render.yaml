@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: litera-book-maker
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /api/config
+    envVars:
+      - key: LLM_PROVIDER
+        value: GIGACHAT
+      - key: HOST
+        value: 0.0.0.0
+      - key: GIGACHAT_API_KEY
+        sync: false
+      - key: GIGACHAT_SCOPE
+        value: GIGACHAT_API_PERS
+      - key: GIGACHAT_MODEL
+        value: GigaChat-3-Ultra
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
