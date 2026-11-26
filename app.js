@@ -11,6 +11,7 @@ let cloudUserId = null;
 let cloudEnabled = false;
 let storageKey = STORAGE_KEY;
 let cloudSaveTimer;
+let passwordRecoveryMode = new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
 
 function loadBooks() {
   try {
@@ -540,6 +541,60 @@ function bindEvents() {
     if (!$("#auth-form").reportValidity()) return;
     void signIn($("#auth-email").value.trim(), $("#auth-password").value, true);
   });
+  $("#forgot-password").addEventListener("click", () => {
+    $("#recovery-email").value = $("#auth-email").value.trim();
+    $("#auth-form").hidden = true;
+    $("#recovery-request-form").hidden = false;
+    $("#auth-note").textContent = "";
+  });
+  $("#recovery-cancel").addEventListener("click", () => {
+    $("#recovery-request-form").hidden = true;
+    $("#auth-form").hidden = false;
+    $("#auth-note").textContent = "";
+  });
+  $("#recovery-request-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!cloudClient) return showToast("Supabase не настроен для этого сайта.", true);
+    try {
+      const email = $("#recovery-email").value.trim();
+      const { error } = await cloudClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+      });
+      if (error) throw error;
+      $("#auth-note").textContent = "Если аккаунт с таким адресом существует, на почту отправлена ссылка для сброса пароля.";
+      showToast("Проверьте почту и откройте ссылку для сброса пароля.");
+    } catch (error) {
+      showToast(`Не удалось отправить ссылку: ${error.message || error}`, true);
+    }
+  });
+  $("#recovery-update-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const password = $("#new-password").value;
+    if (password !== $("#confirm-password").value) {
+      $("#confirm-password").setCustomValidity("Пароли не совпадают.");
+      $("#confirm-password").reportValidity();
+      return;
+    }
+    $("#confirm-password").setCustomValidity("");
+    try {
+      const { error } = await cloudClient.auth.updateUser({ password });
+      if (error) throw error;
+    } catch (error) {
+      showToast(`Не удалось обновить пароль: ${error.message || error}`, true);
+      return;
+    }
+    passwordRecoveryMode = false;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    $("#recovery-update-form").hidden = true;
+    $("#auth-note").textContent = "";
+    const { data, error: sessionError } = await cloudClient.auth.getSession();
+    if (sessionError) {
+      showToast(`Пароль обновлён, но не удалось открыть библиотеку: ${sessionError.message}`, true);
+      return;
+    }
+    await handleCloudSession(data.session);
+    showToast("Пароль обновлён.");
+  });
   $("#sign-out").addEventListener("click", async () => {
     if (!cloudClient) return;
     const { error } = await cloudClient.auth.signOut();
@@ -619,12 +674,31 @@ async function initializeApp() {
         return;
       }
       cloudClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-      cloudClient.auth.onAuthStateChange((_event, session) => {
-        setTimeout(() => { void handleCloudSession(session); }, 0);
+      cloudClient.auth.onAuthStateChange((event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          passwordRecoveryMode = true;
+          $("#auth-form").hidden = true;
+          $("#recovery-request-form").hidden = true;
+          $("#recovery-update-form").hidden = false;
+          $("#auth-note").textContent = "";
+          setView("auth", "Новый пароль");
+        }
+        setTimeout(() => {
+          if (passwordRecoveryMode) return;
+          void handleCloudSession(session);
+        }, 0);
       });
       const { data, error } = await cloudClient.auth.getSession();
       if (error) throw new Error(`Supabase Auth: ${error.message}`);
-      await handleCloudSession(data.session);
+      if (passwordRecoveryMode) {
+        $("#auth-form").hidden = true;
+        $("#recovery-request-form").hidden = true;
+        $("#recovery-update-form").hidden = false;
+        $("#auth-note").textContent = "";
+        setView("auth", "Новый пароль");
+      } else {
+        await handleCloudSession(data.session);
+      }
     } else {
       cloudEnabled = false;
       storageKey = STORAGE_KEY;

@@ -44,7 +44,24 @@
             <input id="auth-email" type="email" autocomplete="email" required placeholder="you@example.com">
             <label class="field-label" for="auth-password">Пароль</label>
             <input id="auth-password" type="password" autocomplete="current-password" minlength="8" required placeholder="Не менее 8 символов">
+            <button class="auth-link" id="forgot-password" type="button">Забыли пароль?</button>
             <div class="auth-actions"><button class="button button-secondary" id="sign-up" type="button">Создать аккаунт</button><button class="button button-primary" type="submit">Войти</button></div>
+          </form>
+          <form id="recovery-request-form" hidden>
+            <h2>Восстановление пароля</h2>
+            <p class="auth-copy">Укажите почту аккаунта — отправим ссылку для создания нового пароля.</p>
+            <label class="field-label" for="recovery-email">Электронная почта</label>
+            <input id="recovery-email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <div class="auth-actions"><button class="button button-secondary" id="recovery-cancel" type="button">Назад</button><button class="button button-primary" type="submit">Отправить ссылку</button></div>
+          </form>
+          <form id="recovery-update-form" hidden>
+            <h2>Новый пароль</h2>
+            <p class="auth-copy">Придумайте новый пароль для своей библиотеки.</p>
+            <label class="field-label" for="new-password">Новый пароль</label>
+            <input id="new-password" type="password" autocomplete="new-password" minlength="8" required placeholder="Не менее 8 символов">
+            <label class="field-label" for="confirm-password">Повторите пароль</label>
+            <input id="confirm-password" type="password" autocomplete="new-password" minlength="8" required placeholder="Повторите новый пароль">
+            <div class="auth-actions"><button class="button button-primary" type="submit">Сохранить пароль</button></div>
           </form>
           <p class="auth-note" id="auth-note">Нужны URL и anon key проекта Supabase в настройках окружения сайта.</p>
         </div>
