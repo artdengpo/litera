@@ -17,6 +17,8 @@ services:
         value: GIGACHAT_API_PERS
       - key: GIGACHAT_MODEL
         value: GigaChat-3-Ultra
+      - key: GIGACHAT_CA_BUNDLE
+        value: assets/certificates/russian_trusted_root_ca_pem.crt
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
